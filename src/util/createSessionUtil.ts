@@ -224,8 +224,14 @@ export default class CreateSessionUtil {
 
   async listenMessages(client: WhatsAppServer, req: Request) {
     await client.onMessage(async (message: any) => {
-      eventEmitter.emit(`mensagem-${client.session}`, client, message);
-      callWebHook(client, req, 'onmessage', message);
+      if (message.chatId !== 'status@broadcast') {
+        if (message.type === 'call_log') {
+          message.body = '[Aviso HopChat: Chamada de voz|vídeo perdida.] ';
+        }
+        eventEmitter.emit(`mensagem-${client.session}`, client, message);
+        callWebHook(client, req, 'onmessage', message);
+      }
+
       if (message.type === 'location')
         client.onLiveLocation(message.sender.id, (location) => {
           callWebHook(client, req, 'location', location);
